@@ -1,3 +1,7 @@
 QR:
   url: "src\\..\\results\\image\\"
   name: "QRCode.png"
+
+User:
+  saveUrl: "src\\..\\results\\"
+  name: "userCookie.txt"

@@ -6,6 +6,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Properties extends HashMap<String,String> {
+
+
+
+
+
     private static Map<String,Object> map=null;
 
     static {
@@ -18,7 +23,7 @@ public class Properties extends HashMap<String,String> {
         InputStream inputStream = Properties.class.
                 getClassLoader().getResourceAsStream("application.yml");
         map=yaml.load(inputStream);
-        //System.out.println(map);
+
     }
 
 
