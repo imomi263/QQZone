@@ -38,7 +38,10 @@ public class RequestUtils {
 
     );
 
-
+    public static HttpGet addParams(HttpGet httpget){
+        // todo
+        return null;
+    }
 
     public static HttpGet addHeaders(String url){
         HttpGet request = new HttpGet(url);
