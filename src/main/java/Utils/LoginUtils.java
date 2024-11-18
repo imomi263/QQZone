@@ -1,14 +1,14 @@
 package Utils;
 
 
+import Config.Properties;
+import Config.UserProperties;
+import Entity.Cookies;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
-import com.alibaba.fastjson2.JSONWriter;
-import com.alibaba.fastjson2.TypeReference;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.params.CookiePolicy;
@@ -16,19 +16,15 @@ import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.impl.client.CloseableHttpClient;
 
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,6 +36,9 @@ import static Utils.RequestUtils.*;
 
 
 public class LoginUtils {
+
+    private RequestUtils requestUtils;
+
     // 获取二维码
     private String QR_URL="https://ssl.ptlogin2.qq.com/ptqrshow?" +
             "appid=549000912&e=2&l=M&s=3&d=72&v=4&t=0.8692955245720428&daid=5&pt_3rd_aid=0";
@@ -67,7 +66,7 @@ public class LoginUtils {
     public void getQRImage(byte[] bytes) throws IOException {
 
 
-        String filepath=Properties.get("QR-url");
+        String filepath= Properties.get("QR-url");
         File file=new File(filepath);
         file.mkdirs();
         File newfile=new File(Properties.get("QR-url") + Properties.get("QR-name"));
@@ -126,11 +125,12 @@ public class LoginUtils {
 
 
             CloseableHttpClient httpClient=HttpClientBuilder.create().build();
-            HttpClientParams.setCookiePolicy(httpClient.getParams(), CookiePolicy.BROWSER_COMPATIBILITY);
+
             // 消除警报
 
 
             HttpGet httpget = new HttpGet(url);
+            httpget.setConfig(defaultConfig);
 
             httpget.addHeader("Cookie","qrsig="+qrsig+";");
             CloseableHttpResponse response = null;
@@ -177,7 +177,7 @@ public class LoginUtils {
                         "=2052&ptredirect=100&aid=549000912&daid=5&j_later=0&low_login_hour=0&regmaster=0&pt_login_type" +
                         "=3&pt_aid=0&pt_aaid=16&pt_light=0&pt_3rd_aid=0";
 
-                        System.out.println(new_url);
+                        //System.out.println(new_url);
 
                         // 禁止重定向
                         CloseableHttpClient httpclient= HttpClientBuilder.create().disableRedirectHandling().build();
@@ -186,9 +186,6 @@ public class LoginUtils {
                         httpget2.setConfig(defaultConfig);
 
                         CloseableHttpResponse response2 = httpclient.execute(httpget2);
-
-
-
 
                         cookieHeader=response2.getHeaders("Set-Cookie");
                         Map<String,String>map=getHeadersString(cookieHeader);
@@ -217,6 +214,8 @@ public class LoginUtils {
         Header[] cookies=getCookies();
 
         Map<String,String>map=getHeadersString(cookies);
+        Cookies.setCookies(map);
+
         String uin=map.get("uin");
 
         UserProperties.setUserUin(uin);
@@ -224,6 +223,7 @@ public class LoginUtils {
         String g_tk=String.valueOf(bkn(map.get("p_skey")));
 
         UserProperties.setG_tk(g_tk);
+
         // 这里的uin需要去掉那个'o'
         String url="https://r.qzone.qq.com/fcg-bin/cgi_get_portrait.fcg?g_tk=" +
                 g_tk + "&uins=" + uin.substring(1);
@@ -231,17 +231,11 @@ public class LoginUtils {
         //System.out.println(url);
 
         CloseableHttpClient httpclient = HttpClientBuilder.create().build();
+
         HttpGet httpget = addHeaders(url);
-        StringBuilder stringBuilder=new StringBuilder();
 
-        String[] strList={"skey","uin","p_skey","p_uin","pt4_token"};
-
-
-        for(String s:strList){
-            stringBuilder.append(s+"="+map.get(s)+";");
-        }
-        System.out.println(stringBuilder);
-        httpget.addHeader("Cookie",stringBuilder.toString());
+        // 设置cookie
+        httpget=Cookies.getCookies(httpget);
 
         HttpResponse response = httpclient.execute(httpget);
 

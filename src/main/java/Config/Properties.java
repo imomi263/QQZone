@@ -1,4 +1,4 @@
-package Utils;
+package Config;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;

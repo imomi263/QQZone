@@ -1,6 +1,6 @@
-package Utils;
+package Config;
 
-public  class UserProperties {
+public class UserProperties {
     private static String userNickName=null;
     private  static String userUin=null;
     private static String g_tk=null;
